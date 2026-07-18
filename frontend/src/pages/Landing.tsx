@@ -1,104 +1,67 @@
-import { Link } from 'react-router-dom';
-import { ArrowRight, BarChart3, Zap, Shield } from 'lucide-react';
+import { Link } from 'react-router-dom'
+import { LinkIcon, BarChart3 } from 'lucide-react'
 
 export default function Landing() {
-  const features = [
-    {
-      icon: BarChart3,
-      title: 'Analytics',
-      description: 'Track content performance across all platforms',
-    },
-    {
-      icon: Zap,
-      title: 'Real-time Updates',
-      description: 'Get instant insights on your content metrics',
-    },
-    {
-      icon: Shield,
-      title: 'Secure Reports',
-      description: 'Your data is encrypted and always protected',
-    },
-  ];
-
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-white to-white">
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-blue-50 to-white py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-            Manage Your Content Reports
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
+        <div className="text-center">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-4 md:mb-6">
+            ContentPulse
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Streamline your content reporting workflow with ContentPulse. Connect platforms, upload reports, and track analytics all in one place.
+          <p className="text-xl md:text-2xl text-gray-600 mb-12 md:mb-16 max-w-3xl mx-auto">
+            AI-powered Content Performance & Editorial Intelligence
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/signup"
-              className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
-            >
-              Get Started <ArrowRight className="ml-2" size={20} />
-            </Link>
-            <Link
-              to="/login"
-              className="inline-flex items-center justify-center px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-semibold"
-            >
-              Sign In
-            </Link>
-          </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Features
-            </h2>
-            <p className="text-xl text-gray-600">
-              Everything you need to manage content reports efficiently
-            </p>
+      {/* Feature Cards Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 md:pb-32">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Card 1: Connect Platform */}
+          <div className="border-2 border-gray-200 rounded-lg p-8 hover:shadow-lg transition-shadow bg-white">
+            <div className="flex flex-col h-full">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                <LinkIcon className="w-6 h-6 text-blue-600" />
+              </div>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-3">
+                Connect Platform
+              </h2>
+              <p className="text-gray-600 mb-6 flex-grow">
+                Connect your YouTube, Instagram, Facebook, or LinkedIn account to automatically analyze your published content.
+              </p>
+              <Link
+                to="/connect-platform"
+                className="inline-block w-full px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-semibold text-center"
+              >
+                Connect Platform
+              </Link>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <div
-                  key={index}
-                  className="p-8 border border-gray-200 rounded-lg hover:shadow-lg transition-shadow"
-                >
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                    <Icon className="text-blue-600" size={24} />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-600">{feature.description}</p>
-                </div>
-              );
-            })}
+          {/* Card 2: Upload Analytics Report */}
+          <div className="border-2 border-gray-200 rounded-lg p-8 hover:shadow-lg transition-shadow bg-white">
+            <div className="flex flex-col h-full">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                <BarChart3 className="w-6 h-6 text-green-600" />
+              </div>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-3">
+                Upload Analytics Report
+              </h2>
+              <p className="text-gray-600 mb-6 flex-grow">
+                Upload CSV, Excel, or PDF analytics reports and receive AI-powered insights.
+              </p>
+              <Link
+                to="/upload-report"
+                className="inline-block w-full px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors font-semibold text-center"
+              >
+                Upload Report
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-blue-600">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-            Ready to get started?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8">
-            Join thousands of teams using ContentPulse to manage their content reports.
-          </p>
-          <Link
-            to="/dashboard"
-            className="inline-block px-8 py-3 bg-white text-blue-600 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
-          >
-            Start Using ContentPulse
-          </Link>
         </div>
       </section>
     </div>
-  );
+  )
 }
