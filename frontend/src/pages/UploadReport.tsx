@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import { Upload, FileText, Calendar } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Upload, FileText, Calendar, CheckCircle } from 'lucide-react';
 
 export default function UploadReport() {
+  const navigate = useNavigate();
   const [fileName, setFileName] = useState<string | null>(null);
+  const [fileSize, setFileSize] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     reportName: '',
     platform: '',
@@ -11,7 +14,9 @@ export default function UploadReport() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
-      setFileName(e.target.files[0].name);
+      const file = e.target.files[0];
+      setFileName(file.name);
+      setFileSize(file.size);
     }
   };
 
@@ -20,10 +25,23 @@ export default function UploadReport() {
     setFormData({ ...formData, [name]: value });
   };
 
+  const handleGenerateInsights = () => {
+    navigate('/processing');
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Placeholder - no business logic
     console.log('Report submission:', { ...formData, file: fileName });
+  };
+
+  // Format file size to KB or MB
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   };
 
   return (
@@ -119,10 +137,24 @@ export default function UploadReport() {
                   className="hidden"
                 />
               </div>
+              
+              {/* File Success Message */}
               {fileName && (
-                <div className="mt-4 p-4 bg-green-50 rounded-md flex items-center">
-                  <FileText className="text-green-600 mr-3" size={20} />
-                  <span className="text-green-800 text-sm font-medium">{fileName}</span>
+                <div className="mt-4 space-y-3">
+                  <div className="p-4 bg-green-50 rounded-md border border-green-200">
+                    <div className="flex items-center mb-2">
+                      <CheckCircle className="text-green-600 mr-3" size={20} />
+                      <span className="text-green-800 font-semibold text-sm">File uploaded successfully.</span>
+                    </div>
+                    <div className="space-y-1 ml-8">
+                      <p className="text-green-700 text-sm">
+                        <span className="font-medium">File name:</span> {fileName}
+                      </p>
+                      <p className="text-green-700 text-sm">
+                        <span className="font-medium">File size:</span> {fileSize !== null ? formatFileSize(fileSize) : 'Unknown'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -134,6 +166,18 @@ export default function UploadReport() {
                 className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-semibold"
               >
                 Upload Report
+              </button>
+              <button
+                type="button"
+                disabled={!fileName}
+                onClick={handleGenerateInsights}
+                className={`flex-1 px-6 py-3 rounded-md font-semibold transition-colors ${
+                  fileName
+                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                Generate Insights
               </button>
               <button
                 type="button"
