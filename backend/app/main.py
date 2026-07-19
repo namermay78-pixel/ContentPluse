@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.api.v1 import health, reports, platforms
+from app.routers import upload, analytics, ai
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -22,11 +23,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# Startup event to ensure uploads directory exists
+@app.on_event("startup")
+async def startup_event():
+    """Initialize required directories on app startup."""
+    from app.routers.upload import ensure_uploads_directory
+    ensure_uploads_directory()
+
+
 # Include routers
 app.include_router(health.router, prefix=settings.api_v1_str)
 app.include_router(reports.router, prefix=settings.api_v1_str)
 app.include_router(platforms.router, prefix=settings.api_v1_str)
-
+app.include_router(upload.router, prefix=settings.api_v1_str)
+app.include_router(analytics.router, prefix=settings.api_v1_str)
+app.include_router(ai.router, prefix=settings.api_v1_str)
 
 @app.get("/")
 async def root():
