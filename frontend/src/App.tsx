@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard'
 import ConnectPlatform from './pages/ConnectPlatform'
 import UploadReport from './pages/UploadReport'
 import ReportDetails from './pages/ReportDetails'
+import ContentIntelligenceDashboard from './pages/ContentIntelligenceDashboard'
+import AnalyticsDashboard from './pages/AnalyticsDashboard'
 import './App.css'
 
 function App() {
@@ -19,6 +21,8 @@ function App() {
           <Route path="/connect-platform" element={<ConnectPlatform />} />
           <Route path="/upload-report" element={<UploadReport />} />
           <Route path="/report/:id" element={<ReportDetails />} />
+          <Route path="/content-dashboard" element={<ContentIntelligenceDashboard />} />
+          <Route path="/analytics-dashboard" element={<AnalyticsDashboard />} />
         </Routes>
       </Layout>
     </Router>

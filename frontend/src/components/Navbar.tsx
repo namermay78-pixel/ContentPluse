@@ -9,11 +9,12 @@ export default function Navbar() {
   const isActive = (path: string) => location.pathname === path;
 
   const navLinks = [
-    { label: 'Home', path: '/' },
-    { label: 'Dashboard', path: '/dashboard' },
-    { label: 'Connect', path: '/connect-platform' },
-    { label: 'Upload', path: '/upload-report' },
-  ];
+  { label: 'Home', path: '/' },
+  { label: 'Dashboard', path: '/dashboard' },
+  { label: 'Analytics', path: '/analytics-dashboard' },
+  { label: 'Connect', path: '/connect-platform' },
+  { label: 'Upload', path: '/upload-report' },
+];
 
   return (
     <nav className="bg-white shadow-md">
