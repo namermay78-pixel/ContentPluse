@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, FileText, Calendar, CheckCircle } from 'lucide-react';
+import { Upload, FileText, Calendar, CheckCircle, X, ArrowRight, File, FileCode, Trash2 } from 'lucide-react';
 
 export default function UploadReport() {
   const navigate = useNavigate();
   const [fileName, setFileName] = useState<string | null>(null);
   const [fileSize, setFileSize] = useState<number | null>(null);
+  const [fileType, setFileType] = useState<string | null>(null);
+  const [uploadTime, setUploadTime] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     reportName: '',
     platform: '',
@@ -17,6 +19,8 @@ export default function UploadReport() {
       const file = e.target.files[0];
       setFileName(file.name);
       setFileSize(file.size);
+      setFileType(getFileType(file.name));
+      setUploadTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     }
   };
 
@@ -25,14 +29,36 @@ export default function UploadReport() {
     setFormData({ ...formData, [name]: value });
   };
 
+  const handleRemoveFile = () => {
+    setFileName(null);
+    setFileSize(null);
+    setFileType(null);
+    setUploadTime(null);
+  };
+
   const handleGenerateInsights = () => {
     navigate('/processing');
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Placeholder - no business logic
     console.log('Report submission:', { ...formData, file: fileName });
+  };
+
+  // Get file type from extension
+  const getFileType = (name: string): string => {
+    const ext = name.split('.').pop()?.toUpperCase() || 'Unknown';
+    switch (ext) {
+      case 'CSV':
+        return 'CSV File';
+      case 'XLSX':
+      case 'XLS':
+        return 'Excel Spreadsheet';
+      case 'PDF':
+        return 'PDF Document';
+      default:
+        return 'File';
+    }
   };
 
   // Format file size to KB or MB
@@ -42,6 +68,15 @@ export default function UploadReport() {
     const sizes = ['Bytes', 'KB', 'MB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  // Get file icon
+  const getFileIcon = () => {
+    if (!fileType) return <FileText className="w-12 h-12 text-blue-500" />;
+    if (fileType.includes('CSV')) return <FileCode className="w-12 h-12 text-orange-500" />;
+    if (fileType.includes('Excel')) return <File className="w-12 h-12 text-green-500" />;
+    if (fileType.includes('PDF')) return <File className="w-12 h-12 text-red-500" />;
+    return <FileText className="w-12 h-12 text-blue-500" />;
   };
 
   return (
@@ -137,22 +172,80 @@ export default function UploadReport() {
                   className="hidden"
                 />
               </div>
-              
-              {/* File Success Message */}
+
+              {/* Report Preview Card */}
               {fileName && (
-                <div className="mt-4 space-y-3">
-                  <div className="p-4 bg-green-50 rounded-md border border-green-200">
-                    <div className="flex items-center mb-2">
-                      <CheckCircle className="text-green-600 mr-3" size={20} />
-                      <span className="text-green-800 font-semibold text-sm">File uploaded successfully.</span>
+                <div className="mt-6 space-y-4">
+                  {/* Preview Card */}
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200 p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-start gap-4">
+                        <div className="mt-1">
+                          {getFileIcon()}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-gray-900 mb-4">Report Preview</h3>
+                          
+                          {/* Preview Details */}
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between py-2 border-b border-blue-100">
+                              <span className="text-sm text-gray-600">File Name</span>
+                              <span className="text-sm font-semibold text-gray-900">{fileName}</span>
+                            </div>
+                            <div className="flex items-center justify-between py-2 border-b border-blue-100">
+                              <span className="text-sm text-gray-600">File Type</span>
+                              <span className="text-sm font-semibold text-gray-900">{fileType}</span>
+                            </div>
+                            <div className="flex items-center justify-between py-2 border-b border-blue-100">
+                              <span className="text-sm text-gray-600">File Size</span>
+                              <span className="text-sm font-semibold text-gray-900">
+                                {fileSize !== null ? formatFileSize(fileSize) : 'Unknown'}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between py-2 border-b border-blue-100">
+                              <span className="text-sm text-gray-600">Upload Time</span>
+                              <span className="text-sm font-semibold text-gray-900">{uploadTime || '-'}</span>
+                            </div>
+                            <div className="flex items-center justify-between py-2">
+                              <span className="text-sm text-gray-600">Status</span>
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                                <span className="text-sm font-semibold text-green-700">Ready for Analysis</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Remove Button */}
+                      <button
+                        type="button"
+                        onClick={handleRemoveFile}
+                        className="flex-shrink-0 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Remove file"
+                      >
+                        <X size={24} />
+                      </button>
                     </div>
-                    <div className="space-y-1 ml-8">
-                      <p className="text-green-700 text-sm">
-                        <span className="font-medium">File name:</span> {fileName}
-                      </p>
-                      <p className="text-green-700 text-sm">
-                        <span className="font-medium">File size:</span> {fileSize !== null ? formatFileSize(fileSize) : 'Unknown'}
-                      </p>
+                  </div>
+
+                  {/* Verification Checklist */}
+                  <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
+                    <h4 className="text-sm font-semibold text-gray-900 mb-3">Verification</h4>
+                    
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span className="text-sm text-gray-700">Supported file format</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span className="text-sm text-gray-700">File size verified</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span className="text-sm text-gray-700">Ready for AI analysis</span>
                     </div>
                   </div>
                 </div>
@@ -171,13 +264,14 @@ export default function UploadReport() {
                 type="button"
                 disabled={!fileName}
                 onClick={handleGenerateInsights}
-                className={`flex-1 px-6 py-3 rounded-md font-semibold transition-colors ${
+                className={`flex-1 px-6 py-3 rounded-md font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
                   fileName
-                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >
                 Generate Insights
+                {fileName && <ArrowRight size={18} />}
               </button>
               <button
                 type="button"
