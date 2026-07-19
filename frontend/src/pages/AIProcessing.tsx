@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   CheckCircle2,
@@ -72,7 +72,13 @@ export default function AIProcessing() {
   useEffect(() => {
     if (isComplete) {
       const redirectTimer = setTimeout(() => {
-        navigate('/analytics-dashboard');
+        // Get analysis data from localStorage or pass it through state
+        const analysisData = localStorage.getItem('currentAnalysis');
+        const analysisState = analysisData ? JSON.parse(analysisData) : null;
+        
+        navigate('/analytics-dashboard', { 
+          state: { analysis: analysisState } 
+        });
       }, 2000);
 
       return () => clearTimeout(redirectTimer);

@@ -1,0 +1,31 @@
+# Maven
+target/
+.m2/
+*.jar
+*.war
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.settings/
+bin/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+*.class
+*.log
+
+# Spring Boot DevTools
+.sts4-cache/
+.factorypath
+
+# Dependencies
+dependency-reduced-pom.xml

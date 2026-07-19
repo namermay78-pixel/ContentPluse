@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import type { AIInsights } from '../services/reportService';
 import {
   TrendingUp,
   Eye,
@@ -11,6 +13,9 @@ import {
   ArrowDownRight,
   Activity,
 } from 'lucide-react';
+import { AIInsightsPanel } from '@/components';
+import { generateAnalyticsPDF } from '@/utils/pdfExport';
+
 
 // Types
 interface KPIData {
@@ -443,47 +448,54 @@ const ContentFormatChart: React.FC = () => {
 };
 
 // AI Insights Card Component
-const AIInsightsCard: React.FC = () => (
-  <div className="bg-gradient-to-br from-purple-600/10 to-pink-600/10 backdrop-blur-xl rounded-2xl shadow-lg border border-purple-200/30 p-8">
-    <div className="flex items-center gap-3 mb-6">
-      <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg p-3">
-        <Lightbulb className="w-6 h-6 text-white" />
-      </div>
-      <div>
-        <h3 className="text-xl font-bold text-gray-900">AI Insights</h3>
-        <p className="text-xs text-gray-600">Powered by content intelligence</p>
-      </div>
-    </div>
-
-    <div className="space-y-4">
-      {aiInsights.map((insight, index) => (
-        <div key={index} className="flex gap-3 p-4 bg-white/50 rounded-lg border border-white/20 hover:bg-white/70 transition-colors">
-          <div className="flex-shrink-0 w-2 h-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full mt-2" />
-          <p className="text-sm text-gray-700 leading-relaxed">{insight}</p>
+const AIInsightsCard: React.FC<{ insights?: string[] }> = ({ insights }) => {
+  const displayInsights = insights || aiInsights;
+  
+  return (
+    <div className="bg-gradient-to-br from-purple-600/10 to-pink-600/10 backdrop-blur-xl rounded-2xl shadow-lg border border-purple-200/30 p-8">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg p-3">
+          <Lightbulb className="w-6 h-6 text-white" />
         </div>
-      ))}
+        <div>
+          <h3 className="text-xl font-bold text-gray-900">AI Insights</h3>
+          <p className="text-xs text-gray-600">Powered by content intelligence</p>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {displayInsights.map((insight, index) => (
+          <div key={index} className="flex gap-3 p-4 bg-white/50 rounded-lg border border-white/20 hover:bg-white/70 transition-colors">
+            <div className="flex-shrink-0 w-2 h-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full mt-2" />
+            <p className="text-sm text-gray-700 leading-relaxed">{insight}</p>
+          </div>
+        ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Recommendations Card Component
-const RecommendationsCard: React.FC = () => (
-  <div className="bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 p-8">
-    <h3 className="text-xl font-bold text-gray-900 mb-8">Recommendations</h3>
+const RecommendationsCard: React.FC<{ recs?: any }> = ({ recs }) => {
+  const displayRecs = recs || recommendations;
+  
+  return (
+    <div className="bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 p-8">
+      <h3 className="text-xl font-bold text-gray-900 mb-8">Recommendations</h3>
 
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Continue */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 pb-4 border-b border-emerald-200">
-          <div className="bg-gradient-to-br from-emerald-600 to-teal-600 rounded-lg p-2">
-            <TrendingUp className="w-5 h-5 text-white" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Continue */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 pb-4 border-b border-emerald-200">
+            <div className="bg-gradient-to-br from-emerald-600 to-teal-600 rounded-lg p-2">
+              <TrendingUp className="w-5 h-5 text-white" />
+            </div>
+            <h4 className="font-bold text-gray-900">Continue</h4>
           </div>
-          <h4 className="font-bold text-gray-900">Continue</h4>
-        </div>
-        <ul className="space-y-2">
-          {recommendations.continue.map((item, idx) => (
-            <li key={idx} className="flex gap-2 text-sm text-gray-700">
-              <span className="text-emerald-600 font-bold">→</span>
+          <ul className="space-y-2">
+            {displayRecs.continue.map((item: string, idx: number) => (
+              <li key={idx} className="flex gap-2 text-sm text-gray-700">
+                <span className="text-emerald-600 font-bold">→</span>
               <span>{item}</span>
             </li>
           ))}
@@ -525,20 +537,83 @@ const RecommendationsCard: React.FC = () => (
           ))}
         </ul>
       </div>
+      </div>
     </div>
-  </div>
-);
+  );
+};
+
 
 // Main Analytics Dashboard Component
 export default function AnalyticsDashboard() {
+  const location = useLocation();
   const [isExporting, setIsExporting] = useState(false);
+  
+  // Get analysis data from location state or localStorage
+  const analysisData = location.state?.analysis || (() => {
+    const stored = localStorage.getItem('currentAnalysis');
+    return stored ? JSON.parse(stored) : null;
+  })();
+
+  const aiAnalysis: AIInsights | null = analysisData?.analysis || null;
+
+  // Transform AI insights into KPI data
+  const transformedKPIData: KPIData[] = aiAnalysis ? [
+    {
+      label: 'Engagement Rate',
+      value: aiAnalysis.kpis.engagement_rate,
+      change: 12.5,
+      icon: <Zap className="w-7 h-7" />,
+      trend: aiAnalysis.kpis.trend_momentum === 'positive' ? 'up' : 'down',
+      color: aiAnalysis.kpis.trend_momentum === 'positive' ? 'from-blue-600 to-cyan-600' : 'from-red-600 to-orange-600',
+    },
+    {
+      label: 'Content Quality',
+      value: `${aiAnalysis.kpis.content_quality_score}/100`,
+      change: 8.3,
+      icon: <BarChart3 className="w-7 h-7" />,
+      trend: 'up',
+      color: 'from-purple-600 to-pink-600',
+    },
+    {
+      label: 'Audience Relevance',
+      value: aiAnalysis.kpis.audience_relevance,
+      change: 15.2,
+      icon: <TrendingUp className="w-7 h-7" />,
+      trend: 'up',
+      color: 'from-emerald-600 to-teal-600',
+    },
+    {
+      label: 'Opportunity Score',
+      value: `${aiAnalysis.opportunity_score}/100`,
+      change: 22.1,
+      icon: <Activity className="w-7 h-7" />,
+      trend: 'up',
+      color: 'from-orange-600 to-red-600',
+    },
+  ] : kpiData;
+
+  // Use AI insights if available, otherwise use dummy data
+  const displayedRecommendations = aiAnalysis?.recommendations || recommendations;
+  const displayedInsights = aiAnalysis?.insights.map(i => i.title) || aiInsights;
 
   const handleExportPDF = () => {
     setIsExporting(true);
     setTimeout(() => {
-      setIsExporting(false);
-      alert('PDF export would be generated here');
-    }, 1500);
+      try {
+        generateAnalyticsPDF({
+          kpiData: transformedKPIData,
+          topicsData,
+          contentFormatsData,
+          aiInsights: displayedInsights,
+          recommendations: displayedRecommendations,
+        });
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        alert('Failed to generate PDF. Please try again.');
+      } finally {
+        setIsExporting(false);
+      }
+    }, 500);
   };
 
   return (
@@ -582,9 +657,14 @@ export default function AnalyticsDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {kpiData.map((kpi, index) => (
+          {transformedKPIData.map((kpi, index) => (
             <PremiumKPICard key={index} data={kpi} />
           ))}
+        </div>
+
+        {/* AI Insights Panel */}
+        <div className="mb-12">
+          <AIInsightsPanel analysis={aiAnalysis || undefined} />
         </div>
 
         {/* Charts Section */}
@@ -607,7 +687,7 @@ export default function AnalyticsDashboard() {
           {/* AI Insights */}
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Smart Analytics</h2>
-            <AIInsightsCard />
+            <AIInsightsCard insights={displayedInsights} />
           </div>
         </div>
 
@@ -618,7 +698,7 @@ export default function AnalyticsDashboard() {
 
         {/* Recommendations */}
         <div className="mb-12">
-          <RecommendationsCard />
+          <RecommendationsCard recs={displayedRecommendations} />
         </div>
 
         {/* Footer Info */}

@@ -75,6 +75,7 @@ function ConfirmationModal({
 export default function ConnectPlatform() {
   const navigate = useNavigate();
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
+  const [connectedPlatforms, setConnectedPlatforms] = useState<Set<string>>(new Set());
   const [showModal, setShowModal] = useState(false);
 
   const platforms: Platform[] = [
@@ -118,6 +119,10 @@ export default function ConnectPlatform() {
   };
 
   const handleContinue = () => {
+    if (selectedPlatform) {
+      // Mark platform as connected
+      setConnectedPlatforms(prev => new Set(prev).add(selectedPlatform));
+    }
     setShowModal(false);
     // Navigate to processing page
     navigate('/processing');
@@ -156,6 +161,14 @@ export default function ConnectPlatform() {
               {selectedPlatform === platform.id && (
                 <div className="absolute top-4 right-4 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
                   <Check size={16} className="text-white" />
+                </div>
+              )}
+
+              {/* Connected Badge */}
+              {connectedPlatforms.has(platform.id) && (
+                <div className="absolute top-4 right-4 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                  <Check size={14} />
+                  Connected
                 </div>
               )}
 

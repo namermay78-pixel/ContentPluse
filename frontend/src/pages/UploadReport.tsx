@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, FileText, Calendar, CheckCircle, X, ArrowRight, File, FileCode, Trash2 } from 'lucide-react';
+import { Upload, FileText, Calendar, CheckCircle, X, ArrowRight, File, FileCode, AlertCircle, Loader } from 'lucide-react';
+import { uploadReport, analyzeContent } from '../services/reportService';
+
 
 export default function UploadReport() {
   const navigate = useNavigate();
@@ -8,6 +10,10 @@ export default function UploadReport() {
   const [fileSize, setFileSize] = useState<number | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
   const [uploadTime, setUploadTime] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     reportName: '',
     platform: '',
@@ -16,11 +22,14 @@ export default function UploadReport() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
-      const file = e.target.files[0];
-      setFileName(file.name);
-      setFileSize(file.size);
-      setFileType(getFileType(file.name));
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      setFileName(selectedFile.name);
+      setFileSize(selectedFile.size);
+      setFileType(getFileType(selectedFile.name));
       setUploadTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      setError(null);
+      setSuccess(null);
     }
   };
 
@@ -29,20 +38,88 @@ export default function UploadReport() {
     setFormData({ ...formData, [name]: value });
   };
 
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // Submit button click is now handled by handleGenerateInsights
+  };
+
   const handleRemoveFile = () => {
     setFileName(null);
     setFileSize(null);
     setFileType(null);
     setUploadTime(null);
+    setFile(null);
+    setError(null);
+    setSuccess(null);
   };
 
-  const handleGenerateInsights = () => {
-    navigate('/processing');
-  };
+  const handleGenerateInsights = async () => {
+    // Validate inputs
+    if (!file) {
+      setError('Please select a file');
+      return;
+    }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Report submission:', { ...formData, file: fileName });
+    if (!formData.reportName.trim()) {
+      setError('Please enter a report name');
+      return;
+    }
+
+    if (!formData.platform) {
+      setError('Please select a platform');
+      return;
+    }
+
+    if (!formData.reportDate) {
+      setError('Please select a report date');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Step 1: Upload file
+      setSuccess('Uploading file...');
+      const uploadResponse = await uploadReport(file, fileType || 'pdf');
+
+      if (!uploadResponse.success) {
+        throw new Error(uploadResponse.error || 'Upload failed');
+      }
+
+      const parsedContent = uploadResponse.parsed_content || '';
+      setSuccess('Analyzing content...');
+
+      // Step 2: Analyze content with AI
+      const reportId = `${formData.reportName}-${Date.now()}`;
+      const analyzeResponse = await analyzeContent(parsedContent, reportId);
+
+      if (!analyzeResponse.success || analyzeResponse.data.status === 'error') {
+        throw new Error(analyzeResponse.data.error || 'Analysis failed');
+      }
+
+      // Store analysis results in localStorage for dashboard
+      const analysisData = {
+        reportId,
+        reportName: formData.reportName,
+        platform: formData.platform,
+        reportDate: formData.reportDate,
+        uploadedAt: new Date().toISOString(),
+        analysis: analyzeResponse.data,
+      };
+
+      localStorage.setItem('currentAnalysis', JSON.stringify(analysisData));
+
+      setSuccess('Analysis complete! Redirecting to dashboard...');
+      setTimeout(() => {
+        navigate('/dashboard', { state: { analysis: analysisData } });
+      }, 1500);
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during analysis');
+      console.error('Error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Get file type from extension
@@ -87,6 +164,29 @@ export default function UploadReport() {
           <h1 className="text-3xl font-bold text-gray-900">Upload Report</h1>
           <p className="text-gray-600 mt-2">Add a new content report to your dashboard</p>
         </div>
+
+        {/* Error Alert */}
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-red-900">Error</h3>
+              <p className="text-red-700 text-sm mt-1">{error}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Success Alert */}
+        {success && (
+          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
+            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-green-900">Processing</h3>
+              <p className="text-green-700 text-sm mt-1">{success}</p>
+            </div>
+          </div>
+        )}
+
 
         {/* Form Card */}
         <div className="bg-white rounded-lg shadow p-8">
@@ -256,26 +356,38 @@ export default function UploadReport() {
             <div className="flex gap-4 pt-4">
               <button
                 type="submit"
-                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-semibold"
-              >
-                Upload Report
-              </button>
-              <button
-                type="button"
-                disabled={!fileName}
-                onClick={handleGenerateInsights}
-                className={`flex-1 px-6 py-3 rounded-md font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
-                  fileName
-                    ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                disabled={loading}
+                className={`flex-1 px-6 py-3 rounded-md font-semibold transition-all duration-200 ${
+                  loading
+                    ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
                 }`}
               >
-                Generate Insights
-                {fileName && <ArrowRight size={18} />}
+                {loading ? 'Processing...' : 'Upload Report'}
               </button>
               <button
                 type="button"
-                className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-semibold"
+                disabled={!fileName || loading}
+                onClick={handleGenerateInsights}
+                className={`flex-1 px-6 py-3 rounded-md font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+                  !fileName || loading
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg'
+                }`}
+              >
+                {loading && <Loader size={18} className="animate-spin" />}
+                {loading ? 'Analyzing...' : 'Generate Insights'}
+                {!loading && fileName && <ArrowRight size={18} />}
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => navigate('/dashboard')}
+                className={`flex-1 px-6 py-3 border-2 rounded-md font-semibold transition-colors ${
+                  loading
+                    ? 'border-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
               >
                 Cancel
               </button>

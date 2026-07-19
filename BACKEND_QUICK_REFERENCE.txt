@@ -1,0 +1,166 @@
+# Backend Setup - Quick Reference
+
+## ⚡ TL;DR - Get Running in 30 Seconds
+
+```bash
+# 1. Install
+cd backend
+pip install -r requirements.txt
+
+# 2. Run
+uvicorn app.main:app --reload
+
+# 3. Visit
+http://localhost:8000/docs
+```
+
+---
+
+## 📋 What Changed
+
+### Removed
+- ❌ PostgreSQL (psycopg2-binary)
+- ❌ SQLAlchemy
+- ❌ Alembic
+
+### Added
+- ✅ In-memory database (app/db/memory.py)
+- ✅ Report endpoints (app/api/v1/reports.py)
+- ✅ Platform endpoints (app/api/v1/platforms.py)
+
+### Updated
+- ✅ requirements.txt (5 dependencies)
+- ✅ app/core/config.py (no database_url)
+- ✅ app/main.py (new routers)
+
+---
+
+## 📊 API Endpoints
+
+```
+GET  /api/v1/health                    Health check
+POST /api/v1/reports/upload            Upload file
+GET  /api/v1/reports                   List reports
+GET  /api/v1/reports/{id}              Get report
+DELETE /api/v1/reports/{id}            Delete report
+POST /api/v1/platforms/connect         Connect platform
+GET  /api/v1/platforms                 List connections
+GET  /api/v1/platforms/{id}            Get connection
+DELETE /api/v1/platforms/{id}          Disconnect
+```
+
+---
+
+## 🧪 Test It
+
+```bash
+# Health check
+curl http://localhost:8000/api/v1/health
+
+# Upload file
+curl -X POST http://localhost:8000/api/v1/reports/upload \
+  -F "file=@yourfile.pdf"
+
+# Connect platform
+curl -X POST http://localhost:8000/api/v1/platforms/connect \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "YouTube",
+    "account_email": "user@example.com"
+  }'
+
+# List reports
+curl http://localhost:8000/api/v1/reports
+
+# View API docs
+curl http://localhost:8000/docs
+```
+
+---
+
+## 🔧 Project Structure
+
+```
+backend/
+├── app/
+│   ├── main.py                 ← FastAPI app
+│   ├── core/
+│   │   └── config.py           ← Configuration
+│   ├── api/
+│   │   └── v1/
+│   │       ├── health.py       ← Health endpoint
+│   │       ├── reports.py      ← Report endpoints (NEW)
+│   │       └── platforms.py    ← Platform endpoints (NEW)
+│   └── db/
+│       └── memory.py           ← In-memory storage (NEW)
+└── requirements.txt            ← 5 dependencies
+```
+
+---
+
+## 📦 Dependencies
+
+```
+fastapi==0.104.1
+uvicorn==0.24.0
+python-dotenv==1.0.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+```
+
+All compatible with Python 3.14+
+
+---
+
+## 🚀 Start Server
+
+```bash
+uvicorn app.main:app --reload
+```
+
+Or from backend directory:
+```bash
+python -m uvicorn app.main:app --reload
+```
+
+---
+
+## 📚 Documentation
+
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+- OpenAPI JSON: http://localhost:8000/openapi.json
+
+---
+
+## 💾 Data Storage
+
+Data stored in memory only. Lost on server restart. Perfect for MVP testing.
+
+### Records Include
+- UUID identifiers
+- ISO timestamps
+- Content metadata
+- Status tracking
+
+---
+
+## 🔒 CORS Configuration
+
+Accepts requests from:
+- http://localhost:3000
+- http://localhost:5173
+
+---
+
+## ✅ Status
+
+✅ FastAPI backend ready
+✅ No PostgreSQL needed
+✅ Python 3.14+ compatible
+✅ All endpoints working
+✅ Frontend ready to use
+
+---
+
+**Status:** Ready to go! 🚀

@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -20,8 +21,10 @@ export default function Login() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Placeholder - no business logic
-    console.log('Form submitted:', formData);
+    // Store a mock auth token
+    localStorage.setItem('authToken', 'mock-token-' + Date.now());
+    // Redirect to dashboard
+    navigate('/dashboard');
   };
 
   return (
@@ -131,8 +134,8 @@ export default function Login() {
             </p>
             <p className="text-gray-600">
               Don't have an account?{' '}
-              <Link to="/signup" className="text-blue-600 hover:underline">
-                Sign up
+              <Link to="/" className="text-blue-600 hover:underline">
+                Return home
               </Link>
             </p>
           </div>

@@ -9,6 +9,8 @@ import ReportDetails from './pages/ReportDetails'
 import ContentIntelligenceDashboard from './pages/ContentIntelligenceDashboard'
 import AnalyticsDashboard from './pages/AnalyticsDashboard'
 import AIProcessing from './pages/AIProcessing'
+import AIInsights from './pages/AIInsights'
+import AIReportDetails from './pages/AIReportDetails'
 import './App.css'
 
 function App() {
@@ -22,9 +24,11 @@ function App() {
           <Route path="/connect-platform" element={<ConnectPlatform />} />
           <Route path="/upload-report" element={<UploadReport />} />
           <Route path="/report/:id" element={<ReportDetails />} />
+          <Route path="/report-details" element={<AIReportDetails />} />
           <Route path="/content-dashboard" element={<ContentIntelligenceDashboard />} />
           <Route path="/analytics-dashboard" element={<AnalyticsDashboard />} />
           <Route path="/processing" element={<AIProcessing />} />
+          <Route path="/ai-insights" element={<AIInsights />} />
         </Routes>
       </Layout>
     </Router>
